@@ -98,6 +98,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 
 	DisableThreadLibraryCalls(hModule);
 
+	// You might want get these using GetWindowRect or something so you can use in windowed mode
 	Width = GetSystemMetrics(SM_CXSCREEN);
 
 	Height = GetSystemMetrics(SM_CYSCREEN);
