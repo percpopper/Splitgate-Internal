@@ -93,12 +93,6 @@ struct TUObjectArray {
 	UObject* FindObject(const char* name) const;
 };
 
-
-extern FNamePool* NamePoolData;
-extern TUObjectArray* ObjObjects;
-
-bool EngineInit();
-
 template<class T>
 struct TArray
 {
@@ -245,9 +239,9 @@ struct USkeletalMeshComponent {
 
 // Class Engine.SceneComponent
 struct USceneComponent {
-	char pad_0000[0x11c]; // 0x0 (0x11c)
-	struct FVector RelativeLocation; // 0x011C(0x0C)
-	struct FRotator RelativeRotation; // 0x0128(0x0C)
+	char pad_0000[0x11C]; // 0x0 (0x11C)
+	struct FVector RelativeLocation; // 0x11C(0x0C)
+	struct FRotator RelativeRotation; // 0x128(0x0C)
 };
 
 // Class Engine.World 
@@ -257,3 +251,23 @@ struct UWorld {
 	char pad_0001[0x148]; // 0x38 (0x148)
 	class UGameInstance* OwningGameInstance; // 0x180 (0x08)
 };
+
+extern FNamePool* NamePoolData;
+extern TUObjectArray* ObjObjects;
+extern UWorld* WRLD;
+extern UObject* WorldToScreenUFunc;
+extern UObject* GetViewportSizeUFunc;
+extern UObject* K2_DrawLineUFunc;
+extern UObject* LineOfSightToUFunc;
+extern UObject* EnemyClass;
+extern uintptr_t GetBoneMatrixF;
+extern void(*OPostRender)(PVOID UGameViewportClient, PVOID Canvas);
+
+bool EngineInit();
+void ProcessEvent(UObject* Object, void* UFunction, void* Parameters);
+UObject* PortalWarsCharacter();
+FVector USkinnedMeshComponent_GetBoneMatrix(USkeletalMeshComponent* mesh, INT index);
+void K2_DrawLine(PVOID Canvas, FVector2D ScreenPositionA, FVector2D ScreenPositionB, FLOAT Thickness, FLinearColor Color);
+void GetViewportSize(APlayerController* PlayerController, INT& X, INT& Y);
+bool LineOfSightTo(AController* PlayerController, AActor* Other);
+bool ProjectWorldLocationToScreen(APlayerController* PlayerController, FVector& WorldLocation, FVector2D& ScreenLocation);
