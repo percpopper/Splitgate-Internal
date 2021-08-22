@@ -29,6 +29,8 @@ void PostRender(PVOID UGameViewportClient, PVOID Canvas)
 
 	APlayerController* PlayerController = LocalPlayer->PlayerController;
 	if (!PlayerController) return UE4::OPostRender(UGameViewportClient, Canvas);
+	
+	UE4::APlayerController_GetViewportSize(PlayerController, &Width, &Height); // https://www.unknowncheats.me/forum/3222503-post9.html Thanks for suggestion
 
 	APawn* MyPlayer = PlayerController->AcknowledgedPawn;
 	if (!MyPlayer) return UE4::OPostRender(UGameViewportClient, Canvas);
