@@ -18,9 +18,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="UwU.h">
-      <Filter>UwU</Filter>
-    </ClInclude>
     <ClInclude Include="Engine.h">
       <Filter>UwU</Filter>
     </ClInclude>
