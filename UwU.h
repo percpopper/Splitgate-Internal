@@ -1,10 +1,11 @@
 #pragma once
 #include <Windows.h>
 #include <iostream>
+#include "Engine.h"
 #include <vector>
 
-float Width;
-float Height;
+int Width;
+int Height;
 
 template<class T>
 struct TArray
@@ -265,9 +266,7 @@ public:
 
 namespace Utilities {
 
-	/*
-		Thank you, lguilhermee. https://github.com/lguilhermee/Discord-DX11-Overlay-Hook/blob/bf1fd7055d8a6815468dc204310f3dfc7b1eccdc/Helper/Helper.cpp#L12
-	*/
+	// Thank you, lguilhermee. https://github.com/lguilhermee/Discord-DX11-Overlay-Hook/blob/bf1fd7055d8a6815468dc204310f3dfc7b1eccdc/Helper/Helper.cpp#L12
 
 	uintptr_t PatternScan(uintptr_t moduleAdress, const char* signature)
 	{
@@ -321,7 +320,8 @@ namespace Utilities {
 
 }
 
-// Ill switch to ProcessEvent if Biden kills all these Talibans. You have my promise.
+// I'll switch to ProcessEvent if Biden kills all these Talibans. You have my promise!
+
 namespace UE4 {
 
 	UWorld* WRLD; 
@@ -329,30 +329,24 @@ namespace UE4 {
 	void(*OPostRender)(PVOID UGameViewportClient, PVOID Canvas) = nullptr;
 
 	uintptr_t W2S_ADDRESS = NULL;
-	uintptr_t GETOBJECTNAMES_ADDRESS = NULL;
 	uintptr_t FREE_ADDRESS = NULL;
 	uintptr_t BONEMATRIX_ADDRESS = NULL;
 	uintptr_t K2DRAWLINE_ADDRESS = NULL;
 	uintptr_t LINEOFSIGHTTO_ADDRESS = NULL;
 	uintptr_t GETVIEWPORTSIZE_ADDRESS = NULL;
 
-	VOID FMemory_Free(PVOID Original) {
-		return reinterpret_cast<VOID(*)(PVOID)>(FREE_ADDRESS)(Original);
+	UObject* EnemyClass;
+
+	UObject* PortalWarsCharacter()
+	{
+		if (!EnemyClass)
+			EnemyClass = ObjObjects->FindObject("Class PortalWars.PortalWarsCharacter");
+
+		return EnemyClass;
 	}
 
-	std::string UKismetSystemLibrary_GetObjectName(AActor* Object) {
-
-		auto GetObjectName = reinterpret_cast<FString* (*)(FString*, AActor*)>(GETOBJECTNAMES_ADDRESS);
-
-		FString Name;
-		GetObjectName(&Name, Object);
-
-		auto result_str = Name.ToString();
-
-		if (Name.c_str())
-			FMemory_Free((PVOID)Name.c_str());
-
-		return result_str;
+	VOID FMemory_Free(PVOID Original) {
+		return reinterpret_cast<VOID(*)(PVOID)>(FREE_ADDRESS)(Original);
 	}
 
 	FVector USkinnedMeshComponent_GetBoneMatrix(USkeletalMeshComponent* mesh, INT index) {
@@ -376,11 +370,11 @@ namespace UE4 {
 	VOID UCanvas_K2_DrawLine(PVOID Canvas, FVector2D ScreenPositionA, FVector2D ScreenPositionB, FLOAT Thickness, FLinearColor Color) {
 		return reinterpret_cast<VOID(*)(PVOID, FVector2D, FVector2D, FLOAT, FLinearColor)>(K2DRAWLINE_ADDRESS)(Canvas, ScreenPositionA, ScreenPositionB, Thickness, Color);
 	}
-	
+
 	VOID APlayerController_GetViewportSize(APlayerController* Controller, int* X, int* Y) {
 		return reinterpret_cast<VOID(*)(APlayerController*, int*, int*)>(GETVIEWPORTSIZE_ADDRESS)(Controller, X, Y);
 	}
-	
+
 	BOOL FindAddresses() {
 
 		uintptr_t BaseAddress = (uintptr_t)GetModuleHandleA(NULL);
@@ -391,9 +385,6 @@ namespace UE4 {
 
 		FREE_ADDRESS = Utilities::PatternScan(BaseAddress, "48 85 C9 ? 2E 53 48");
 		if (!FREE_ADDRESS) return FALSE;
-
-		GETOBJECTNAMES_ADDRESS = Utilities::PatternScan(BaseAddress, "40 53 48 83 EC 20 48 8B D9 48 85 D2 75 45 33 C0 48 89 01 48 89 41 08 8D 50 05 E8 ? ? ? ? 8B 53 08 8D 42 05 89 43 08 3B 43 0C 7E 08 48 8B CB E8 ? ? ? ? 48 8B 0B 48 8D 15 ? ? ? ? 41 B8 ? ? ? ? E8 ? ? ? ? 48 8B C3 48 83 C4 20 5B C3 48 8B 42 18");
-		if (!GETOBJECTNAMES_ADDRESS) return FALSE;
 
 		W2S_ADDRESS = Utilities::PatternScan(BaseAddress, "48 89 5C 24 08 48 89 6C 24 10 48 89 74 24 18 57 48 81 EC 20 01 00 00 41 0F B6 E9");
 		if (!W2S_ADDRESS) return FALSE;
@@ -406,7 +397,7 @@ namespace UE4 {
 
 		K2DRAWLINE_ADDRESS = Utilities::PatternScan(BaseAddress, "4C 8B DC 48 81 EC ? ? ? ? 4C 89 44 24 ? 66 48 0F 6E D2 F3 0F 10 64 24 ? F3 0F 10 6C 24 ? 0F 28 C4");
 		if (!K2DRAWLINE_ADDRESS) return FALSE;
-		
+
 		GETVIEWPORTSIZE_ADDRESS = Utilities::PatternScan(BaseAddress, "48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 33 C0 49 8B F8 89 02 48 8B F2 41 89");
 		if (!GETVIEWPORTSIZE_ADDRESS) return FALSE;
 

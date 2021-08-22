@@ -7,102 +7,109 @@
 	It is nothing special at all & not that helpful either, that being said please do not bully me about this please thanks please im fragile i may cri.
 
 	Regards, RiceCum1.
+
+	https://github.com/lguilhermee/Discord-DX11-Overlay-Hook/blob/bf1fd7055d8a6815468dc204310f3dfc7b1eccdc/Helper/Helper.cpp#L12 Pattern scanner from here
+	
+	https://github.com/guttir14/CheatIt I pasted his Engine.cpp/h and Util. Shits bussin thanks guttir14
+
 */
 
 void PostRender(PVOID UGameViewportClient, PVOID Canvas)
 {
-	UWorld* World = (UWorld*)(*(uintptr_t*)(UE4::WRLD));
-	if (!World) return UE4::OPostRender(UGameViewportClient, Canvas);
+	do {
+		UWorld* World = *(UWorld**)(UE4::WRLD);
+		if (!World) break;
 
-	UGameInstance* OwningGameInstance = World->OwningGameInstance;
-	if (!OwningGameInstance) return UE4::OPostRender(UGameViewportClient, Canvas);
+		UGameInstance* OwningGameInstance = World->OwningGameInstance;
+		if (!OwningGameInstance) break;
 
-	ULevel* PersistentLevel = World->PersistentLevel;
-	if (!PersistentLevel) return UE4::OPostRender(UGameViewportClient, Canvas);
+		ULevel* PersistentLevel = World->PersistentLevel;
+		if (!PersistentLevel) break;
 
-	TArray<AActor*> Actors = PersistentLevel->Actors;
+		TArray<AActor*> Actors = PersistentLevel->Actors;
 
-	TArray<UPlayer*> LocalPlayers = OwningGameInstance->LocalPlayers;
+		TArray<UPlayer*> LocalPlayers = OwningGameInstance->LocalPlayers;
 
-	UPlayer* LocalPlayer = LocalPlayers[0];
-	if (!LocalPlayer) return UE4::OPostRender(UGameViewportClient, Canvas);
+		UPlayer* LocalPlayer = LocalPlayers[0];
+		if (!LocalPlayer) break;
 
-	APlayerController* PlayerController = LocalPlayer->PlayerController;
-	if (!PlayerController) return UE4::OPostRender(UGameViewportClient, Canvas);
-	
-	UE4::APlayerController_GetViewportSize(PlayerController, &Width, &Height); // https://www.unknowncheats.me/forum/3222503-post9.html Thanks for suggestion
+		APlayerController* PlayerController = LocalPlayer->PlayerController;
+		if (!PlayerController) break;
 
-	APawn* MyPlayer = PlayerController->AcknowledgedPawn;
-	if (!MyPlayer) return UE4::OPostRender(UGameViewportClient, Canvas);
+		UE4::APlayerController_GetViewportSize(PlayerController, &Width, &Height);
 
-	// bTearOff (Ghetto dead check, if you from the hood too you already know about these) https://docs.unrealengine.com/4.26/en-US/API/Runtime/Engine/GameFramework/AActor/TearOff/
-	BYTE IsDead = *(BYTE*)((uintptr_t)MyPlayer + 0x58);
-	if (IsDead != 0x18) return UE4::OPostRender(UGameViewportClient, Canvas);
+		APawn* MyPlayer = PlayerController->AcknowledgedPawn;
+		if (!MyPlayer) break;
 
-	APlayerState* PlayerState = MyPlayer->PlayerState;
-	if (!PlayerState) return UE4::OPostRender(UGameViewportClient, Canvas);
+		// bTearOff (Ghetto dead check, if you from the hood too you already know about these)
+		// https://docs.unrealengine.com/4.26/en-US/API/Runtime/Engine/GameFramework/AActor/TearOff/
 
-	BYTE MyTeamNum = PlayerState->TeamNum;
+		BYTE IsDead = *(BYTE*)((uintptr_t)MyPlayer + 0x58);
+		if (IsDead != 0x18) break;
 
-	for (auto i = 0; i < Actors.Num(); i++) {
+		APlayerState* PlayerState = MyPlayer->PlayerState;
+		if (!PlayerState) break;
 
-		if (!Actors.IsValidIndex(i)) break;
+		BYTE MyTeamNum = PlayerState->TeamNum;
 
-		AActor* Actor = Actors[i];
+		for (auto i = 0; i < Actors.Num(); i++) {
 
-		if (Actor == MyPlayer || !Actor) continue;
+			if (!Actors.IsValidIndex(i)) break;
 
-		// Lag calling this with so many objects bad, replace with someting to filter actor faster if you want. 
-		auto ObjectName = UE4::UKismetSystemLibrary_GetObjectName(Actor);
-		if (!ObjectName.data()) continue;
+			AActor* Actor = Actors[i];
 
-		// Class PortalWars.PortalWarsCharacter
-		if (ObjectName.find("PortalWarsCharacter_BP_C") != std::string::npos || ObjectName.find("PortalWarsBot_BP_C") != std::string::npos) {
+			if (!Actor) continue;
 
-			APawn* Pawn = Actor->Instigator;
+			UObject* Nigga = (UObject*)Actor;
 
-			BYTE IsDead = *(BYTE*)((uintptr_t)Pawn + 0x58);
-			if (IsDead != 0x18) continue;
+			if (Nigga->IsA(UE4::PortalWarsCharacter())) {
 
-			USkeletalMeshComponent* Mesh = Pawn->Mesh;
-			if (!Mesh) continue;
+				APawn* Pawn = Actor->Instigator;
 
-			APlayerState* State = Pawn->PlayerState;
+				BYTE IsDead = *(BYTE*)((uintptr_t)Pawn + 0x58);
+				if (IsDead != 0x18) continue;
 
-			if (State->TeamNum == MyTeamNum) continue;
+				USkeletalMeshComponent* Mesh = Pawn->Mesh;
+				if (!Mesh) continue;
 
-			FVector rootPos = UE4::USkinnedMeshComponent_GetBoneMatrix(Mesh, BoneFNames::root);
+				APlayerState* State = Pawn->PlayerState;
 
-			FVector2D rootPos2D;
+				if (State->TeamNum == MyTeamNum) continue;
 
-			if (UE4::APlayerController_ProjectWorldLocationToScreen(PlayerController, rootPos, &rootPos2D)) {
+				FVector rootPos = UE4::USkinnedMeshComponent_GetBoneMatrix(Mesh, BoneFNames::root);
 
-				if (!rootPos2D.X && !rootPos2D.Y) continue;
+				FVector2D rootPos2D;
 
-				FLinearColor Color = { 1.f,1.f,1.f,1.f };
+				if (UE4::APlayerController_ProjectWorldLocationToScreen(PlayerController, rootPos, &rootPos2D)) {
 
-				if (UE4::AController_LineOfSightTo(PlayerController, Pawn)) Color = { 1.f,0.f,0.f,1.f };
+					if (!rootPos2D.X && !rootPos2D.Y) continue;
 
-				UE4::UCanvas_K2_DrawLine(Canvas, rootPos2D, FVector2D{ Width / 2 , Height }, 1, Color);
+					FLinearColor Color = { 1.f,1.f,1.f,1.f };
+
+					if (UE4::AController_LineOfSightTo(PlayerController, Pawn)) Color = { 1.f,0.f,0.f,1.f };
+
+					UE4::UCanvas_K2_DrawLine(Canvas, rootPos2D, FVector2D{ (float)(Width / 2) , (float)Height }, 1, Color);
+				}
+				// etc etc do your thing...
 			}
-
-
-			// etc etc do your thing...
 		}
-	}
+	} while (false);
 
 	UE4::OPostRender(UGameViewportClient, Canvas);
 }
 
+
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
-    if (ul_reason_for_call != DLL_PROCESS_ATTACH) return FALSE;
+	if (ul_reason_for_call != DLL_PROCESS_ATTACH) return FALSE;
 
 	DisableThreadLibraryCalls(hModule);
 
+	if (!EngineInit()) return FALSE; 
+	
 	if (!UE4::FindAddresses()) return FALSE;
 
-	UWorld* World = (UWorld*)(*(uintptr_t*)(UE4::WRLD));
+	UWorld* World = *(UWorld**)(UE4::WRLD);
 	if (!World) return FALSE;
 
 	UGameInstance* OwningGameInstance = World->OwningGameInstance;
