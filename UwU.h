@@ -334,6 +334,7 @@ namespace UE4 {
 	uintptr_t BONEMATRIX_ADDRESS = NULL;
 	uintptr_t K2DRAWLINE_ADDRESS = NULL;
 	uintptr_t LINEOFSIGHTTO_ADDRESS = NULL;
+	uintptr_t GETVIEWPORTSIZE_ADDRESS = NULL;
 
 	VOID FMemory_Free(PVOID Original) {
 		return reinterpret_cast<VOID(*)(PVOID)>(FREE_ADDRESS)(Original);
@@ -375,7 +376,11 @@ namespace UE4 {
 	VOID UCanvas_K2_DrawLine(PVOID Canvas, FVector2D ScreenPositionA, FVector2D ScreenPositionB, FLOAT Thickness, FLinearColor Color) {
 		return reinterpret_cast<VOID(*)(PVOID, FVector2D, FVector2D, FLOAT, FLinearColor)>(K2DRAWLINE_ADDRESS)(Canvas, ScreenPositionA, ScreenPositionB, Thickness, Color);
 	}
-
+	
+	VOID APlayerController_GetViewportSize(APlayerController* Controller, int* X, int* Y) {
+		return reinterpret_cast<VOID(*)(APlayerController*, int*, int*)>(GETVIEWPORTSIZE_ADDRESS)(Controller, X, Y);
+	}
+	
 	BOOL FindAddresses() {
 
 		uintptr_t BaseAddress = (uintptr_t)GetModuleHandleA(NULL);
@@ -401,6 +406,9 @@ namespace UE4 {
 
 		K2DRAWLINE_ADDRESS = Utilities::PatternScan(BaseAddress, "4C 8B DC 48 81 EC ? ? ? ? 4C 89 44 24 ? 66 48 0F 6E D2 F3 0F 10 64 24 ? F3 0F 10 6C 24 ? 0F 28 C4");
 		if (!K2DRAWLINE_ADDRESS) return FALSE;
+		
+		GETVIEWPORTSIZE_ADDRESS = Utilities::PatternScan(BaseAddress, "48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 33 C0 49 8B F8 89 02 48 8B F2 41 89");
+		if (!GETVIEWPORTSIZE_ADDRESS) return FALSE;
 
 		return TRUE;
 	}
