@@ -271,9 +271,7 @@ void PostRender(PVOID UGameViewportClient, PVOID Canvas)
 
 			AActor* Actor = Actors[i];
 
-			if (Actor == MyPlayer) continue;
-
-			if (!Actor) continue;
+			if (!Actor || Actor == MyPlayer) continue;
 
 			if (Actor->IsA(UE4::PortalWarsCharacter())) {
 
