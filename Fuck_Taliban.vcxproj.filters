@@ -10,9 +10,21 @@
     <ClCompile Include="UwU.cpp">
       <Filter>UwU</Filter>
     </ClCompile>
+    <ClCompile Include="Engine.cpp">
+      <Filter>UwU</Filter>
+    </ClCompile>
+    <ClCompile Include="Util.cpp">
+      <Filter>UwU</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="UwU.h">
+      <Filter>UwU</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine.h">
+      <Filter>UwU</Filter>
+    </ClInclude>
+    <ClInclude Include="Util.h">
       <Filter>UwU</Filter>
     </ClInclude>
   </ItemGroup>
