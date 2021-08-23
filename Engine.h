@@ -199,7 +199,7 @@ struct APlayerController : AController {
 
 // Class Engine.Pawn 
 struct APawn : AActor {
-	char pad_0099[0x108]; // 0x138 (0x108)
+	char pad_0000[0x108]; // 0x138 (0x108)
 	class APlayerState* PlayerState; // 0x240 (0x08)
 	char pad_0001[0x10]; // 0x248 (0x10)
 	class AController* Controller; // 0x258 (0x08)
@@ -226,7 +226,7 @@ struct UPlayer {
 	char pad_0000[0x30]; // 0x0 (0x30)
 	class APlayerController* PlayerController; // 0x30(0x08)
 	char pad_0001[0x38]; // 0x38 (0x38)
-	uintptr_t ViewportClient; // 0x70 (0x08)
+	class UGameViewportClient* ViewportClient; // 0x70 (0x08)
 };
 
 // Class Engine.PlayerState
@@ -262,6 +262,11 @@ struct UWorld {
 struct Canvas : UObject {
 	char pad_0000[0x00]; // 0x28
 	void K2_DrawLine(FVector2D ScreenPositionA, FVector2D ScreenPositionB, FLOAT Thickness, FLinearColor Color);
+};
+
+// Class Engine.GameViewportClient
+struct UGameViewportClient : UObject {
+	char pad_0000[0x00]; // 0x28 (0xNigga)
 };
 
 extern FNamePool* NamePoolData;
