@@ -110,10 +110,10 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 	UPlayer* LocalPlayer = LocalPlayers[0];
 	if (!LocalPlayer) return FALSE;
 
-	uintptr_t ViewPortClient = LocalPlayer->ViewportClient;
+	UGameViewportClient* ViewPortClient = LocalPlayer->ViewportClient;
 	if (!ViewPortClient) return FALSE;
 
-	void** ViewPortClientVTable = *(void***)(ViewPortClient);
+	void** ViewPortClientVTable = ViewPortClient->VFTable;
 	if (!ViewPortClientVTable) return FALSE;
 
 	DWORD protecc;
