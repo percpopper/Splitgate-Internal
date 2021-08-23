@@ -119,7 +119,7 @@ bool ProjectWorldLocationToScreen(APlayerController* PlayerController, FVector& 
 	return Parameters.ReturnValue;
 }
 
-bool LineOfSightTo(AController* PlayerController, AActor* Other)
+bool LineOfSightTo(AController* Controller, AActor* Other)
 {
 	struct {
 		AActor* Other;
@@ -132,7 +132,7 @@ bool LineOfSightTo(AController* PlayerController, AActor* Other)
 	Parameters.ViewPoint = FVector{ 0, 0, 0 };
 	Parameters.bAlternateChecks = FALSE;
 
-	ProcessEvent(PlayerController, LineOfSightToUFunc, &Parameters);
+	ProcessEvent(Controller, LineOfSightToUFunc, &Parameters);
 
 	return Parameters.ReturnValue;
 }
