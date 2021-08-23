@@ -10,7 +10,7 @@ int Height;
 	Credit to guttir14 https://github.com/guttir14/CheatIt I pasted his Engine.cpp/h and Util. Shits bussin thanks
 */
 
-void PostRender(PVOID UGameViewportClient, PVOID Canvas)
+void PostRender(PVOID UGameViewportClient, Canvas* canvas)
 {
 	do {
 
@@ -33,7 +33,7 @@ void PostRender(PVOID UGameViewportClient, PVOID Canvas)
 		APlayerController* PlayerController = LocalPlayer->PlayerController;
 		if (!PlayerController) break;
 
-		GetViewportSize(PlayerController, Width, Height);
+		PlayerController->GetViewportSize(Width, Height);
 
 		APawn* MyPlayer = PlayerController->AcknowledgedPawn;
 		if (!MyPlayer) break;
@@ -72,25 +72,25 @@ void PostRender(PVOID UGameViewportClient, PVOID Canvas)
 
 				if (State->TeamNum == MyTeamNum) continue;
 
-				FVector rootPos = USkinnedMeshComponent_GetBoneMatrix(Mesh, 0);
+				FVector rootPos = Mesh->GetBoneMatrix(0);
 
 				FVector2D rootPos2D;
 
-				if (ProjectWorldLocationToScreen(PlayerController, rootPos, rootPos2D)) {
+				if (PlayerController->ProjectWorldLocationToScreen(rootPos, rootPos2D)) {
 
 					if (!rootPos2D.X && !rootPos2D.Y) continue;
 
 					FLinearColor Color = { 1.f,1.f,1.f,1.f };
 
-					if (LineOfSightTo(PlayerController, Pawn)) Color = { 1.f,0.f,0.f,1.f };
+					if (PlayerController->LineOfSightTo(Pawn)) Color = { 1.f,0.f,0.f,1.f };
 					
-					K2_DrawLine(Canvas, rootPos2D, FVector2D{ (float)(Width / 2) , (float)Height }, 1, Color);
+					canvas->K2_DrawLine(rootPos2D, FVector2D{ (float)(Width / 2) , (float)Height }, 1, Color);
 				}
 			}
 		}
 	} while (false);
 
-	OPostRender(UGameViewportClient, Canvas);
+	OPostRender(UGameViewportClient, canvas);
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)

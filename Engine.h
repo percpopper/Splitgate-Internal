@@ -59,6 +59,7 @@ struct UObject {
 	std::string GetName();
 	std::string GetFullName();
 	bool IsA(void* cmp);
+	void ProcessEvent(void* fn, void* parms);
 };
 
 // Class CoreUObject.Field
@@ -183,6 +184,7 @@ struct AActor : UObject {
 struct AController : AActor {
 	char pad_0000[0xF0]; // 0x138 (0xF0)
 	class APlayerState* PlayerState; // 0x228(0x08)
+	bool LineOfSightTo(AActor* Other);
 };
 
 // Class Engine.PlayerController
@@ -190,6 +192,9 @@ struct APlayerController : AController {
 	char pad_0000[0x68]; // 0x230 (0x68)
 	class UPlayer* Player; // 0x298 (0x08)
 	class APawn* AcknowledgedPawn; // 0x2a0 (0x08)
+	bool ProjectWorldLocationToScreen(FVector& WorldLocation, FVector2D& ScreenLocation);
+	void GetViewportSize(INT& X, INT& Y);
+
 };
 
 // Class Engine.Pawn 
@@ -234,7 +239,8 @@ struct APlayerState {
 
 // Class Engine.SkinnedMeshComponent
 struct USkeletalMeshComponent {
-	char pad_0000[0x69420]; // 0x0 (0x69420)
+	char pad_0000[0x00]; // 0x28
+	FVector GetBoneMatrix(INT index);
 };
 
 // Class Engine.SceneComponent
@@ -252,6 +258,12 @@ struct UWorld {
 	class UGameInstance* OwningGameInstance; // 0x180 (0x08)
 };
 
+// Class Engine.Canvas
+struct Canvas : UObject {
+	char pad_0000[0x00]; // 0x28
+	void K2_DrawLine(FVector2D ScreenPositionA, FVector2D ScreenPositionB, FLOAT Thickness, FLinearColor Color);
+};
+
 extern FNamePool* NamePoolData;
 extern TUObjectArray* ObjObjects;
 extern UWorld* WRLD;
@@ -261,13 +273,7 @@ extern UObject* K2_DrawLineUFunc;
 extern UObject* LineOfSightToUFunc;
 extern UObject* EnemyClass;
 extern uintptr_t GetBoneMatrixF;
-extern void(*OPostRender)(PVOID UGameViewportClient, PVOID Canvas);
+extern void(*OPostRender)(PVOID UGameViewportClient, Canvas* Canvas);
 
 bool EngineInit();
-void ProcessEvent(UObject* Object, void* UFunction, void* Parameters);
 UObject* PortalWarsCharacter();
-FVector USkinnedMeshComponent_GetBoneMatrix(USkeletalMeshComponent* mesh, INT index);
-void K2_DrawLine(PVOID Canvas, FVector2D ScreenPositionA, FVector2D ScreenPositionB, FLOAT Thickness, FLinearColor Color);
-void GetViewportSize(APlayerController* PlayerController, INT& X, INT& Y);
-bool LineOfSightTo(AController* PlayerController, AActor* Other);
-bool ProjectWorldLocationToScreen(APlayerController* PlayerController, FVector& WorldLocation, FVector2D& ScreenLocation);

@@ -74,10 +74,10 @@ UObject* TUObjectArray::FindObject(const char* name) const
 	return nullptr;
 }
 
-void ProcessEvent(UObject* Object, void* UFunction, void* Parameters)
+void UObject::ProcessEvent(void* UFunction, void* Params)
 {
-	auto VTable = *reinterpret_cast<void***>(Object);
-	reinterpret_cast<void(*)(void*, void*, void*)>(VTable[68])(Object, UFunction, Parameters);
+	auto vtable = *reinterpret_cast<void***>(this);
+	reinterpret_cast<void(*)(void*, void*, void*)>(vtable[68])(this, UFunction, Params);
 }
 
 FNamePool* NamePoolData = nullptr;
@@ -89,7 +89,7 @@ UObject* K2_DrawLineUFunc;
 UObject* LineOfSightToUFunc;
 UObject* EnemyClass;
 uintptr_t GetBoneMatrixF;
-void(*OPostRender)(PVOID UGameViewportClient, PVOID Canvas) = nullptr;
+void(*OPostRender)(PVOID UGameViewportClient, Canvas* Canvas) = nullptr;
 
 UObject* PortalWarsCharacter()
 {
@@ -99,7 +99,7 @@ UObject* PortalWarsCharacter()
 	return EnemyClass;
 }
 
-bool ProjectWorldLocationToScreen(APlayerController* PlayerController, FVector& WorldLocation, FVector2D& ScreenLocation)
+bool APlayerController::ProjectWorldLocationToScreen(FVector& WorldLocation, FVector2D& ScreenLocation)
 {
 	struct {
 		FVector WorldLocation;
@@ -112,14 +112,14 @@ bool ProjectWorldLocationToScreen(APlayerController* PlayerController, FVector& 
 	Parameters.ScreenLocation = ScreenLocation;
 	Parameters.bPlayerViewportRelative = FALSE;
 
-	ProcessEvent(PlayerController, WorldToScreenUFunc, &Parameters);
+	ProcessEvent(WorldToScreenUFunc, &Parameters);
 
 	ScreenLocation = Parameters.ScreenLocation;
 
 	return Parameters.ReturnValue;
 }
 
-bool LineOfSightTo(AController* Controller, AActor* Other)
+bool AController::LineOfSightTo(AActor* Other)
 {
 	struct {
 		AActor* Other;
@@ -132,12 +132,12 @@ bool LineOfSightTo(AController* Controller, AActor* Other)
 	Parameters.ViewPoint = FVector{ 0, 0, 0 };
 	Parameters.bAlternateChecks = FALSE;
 
-	ProcessEvent(Controller, LineOfSightToUFunc, &Parameters);
+	ProcessEvent(LineOfSightToUFunc, &Parameters);
 
 	return Parameters.ReturnValue;
 }
 
-void GetViewportSize(APlayerController* PlayerController, INT& X, INT& Y)
+void APlayerController::GetViewportSize(INT& X, INT& Y)
 {
 	struct {
 		INT X;
@@ -147,13 +147,13 @@ void GetViewportSize(APlayerController* PlayerController, INT& X, INT& Y)
 	Parameters.X = X;
 	Parameters.Y = Y;
 
-	ProcessEvent(PlayerController, GetViewportSizeUFunc, &Parameters);
+	ProcessEvent(GetViewportSizeUFunc, &Parameters);
 
 	X = Parameters.X;
 	Y = Parameters.Y;
 }
 
-void K2_DrawLine(PVOID Canvas, FVector2D ScreenPositionA, FVector2D ScreenPositionB, FLOAT Thickness, FLinearColor Color)
+void Canvas::K2_DrawLine(FVector2D ScreenPositionA, FVector2D ScreenPositionB, FLOAT Thickness, FLinearColor Color)
 {
 	struct {
 		FVector2D ScreenPositionA;
@@ -167,15 +167,15 @@ void K2_DrawLine(PVOID Canvas, FVector2D ScreenPositionA, FVector2D ScreenPositi
 	Parameters.Thickness = Thickness;
 	Parameters.Color = Color;
 
-	ProcessEvent((UObject*)Canvas, K2_DrawLineUFunc, &Parameters);
+	ProcessEvent(K2_DrawLineUFunc, &Parameters);
 }
 
-FVector USkinnedMeshComponent_GetBoneMatrix(USkeletalMeshComponent* mesh, INT index) {
+FVector USkeletalMeshComponent::GetBoneMatrix(INT index) {
 
 	auto GetBoneMatrix = reinterpret_cast<FMatrix * (*)(USkeletalMeshComponent*, FMatrix*, INT)>(GetBoneMatrixF);
 
 	FMatrix matrix;
-	GetBoneMatrix(mesh, &matrix, index);
+	GetBoneMatrix(this, &matrix, index);
 
 	return FVector({ matrix.M[3][0], matrix.M[3][1], matrix.M[3][2] });
 }
