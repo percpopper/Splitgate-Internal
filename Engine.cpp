@@ -83,13 +83,21 @@ void UObject::ProcessEvent(void* UFunction, void* Params)
 FNamePool* NamePoolData = nullptr;
 TUObjectArray* ObjObjects = nullptr;
 UWorld* WRLD = nullptr;
+
 UObject* WorldToScreenUFunc;
 UObject* GetViewportSizeUFunc;
+UObject* GetPlayerNameUFunc;
+UObject* GetBoneNameUFunc;
+UObject* SetControlRotationUFunc;
 UObject* K2_DrawLineUFunc;
+UObject* K2_DrawTextUFunc;
 UObject* LineOfSightToUFunc;
 UObject* EnemyClass;
+UObject* Font;
+
 uintptr_t GetBoneMatrixF;
-void(*OPostRender)(PVOID UGameViewportClient, Canvas* Canvas) = nullptr;
+
+void(*OPostRender)(UGameViewportClient* UGameViewportClient, Canvas* Canvas) = nullptr;
 
 UObject* PortalWarsCharacter()
 {
@@ -97,6 +105,12 @@ UObject* PortalWarsCharacter()
 		EnemyClass = ObjObjects->FindObject("Class PortalWars.PortalWarsCharacter");
 
 	return EnemyClass;
+}
+
+UObject* FindFont()
+{
+	if (!Font) Font = ObjObjects->FindObject("Font Roboto.Roboto"); 
+	return Font;
 }
 
 bool APlayerController::ProjectWorldLocationToScreen(FVector& WorldLocation, FVector2D& ScreenLocation)
@@ -153,6 +167,16 @@ void APlayerController::GetViewportSize(INT& X, INT& Y)
 	Y = Parameters.Y;
 }
 
+void AController::SetControlRotation(FRotator NewRotation) {
+	struct {
+		FRotator NewRotation;
+	} Parameters;
+
+	Parameters.NewRotation = NewRotation;
+
+	ProcessEvent(SetControlRotationUFunc, &Parameters);
+}
+
 void Canvas::K2_DrawLine(FVector2D ScreenPositionA, FVector2D ScreenPositionB, FLOAT Thickness, FLinearColor Color)
 {
 	struct {
@@ -170,6 +194,38 @@ void Canvas::K2_DrawLine(FVector2D ScreenPositionA, FVector2D ScreenPositionB, F
 	ProcessEvent(K2_DrawLineUFunc, &Parameters);
 }
 
+void Canvas::K2_DrawText(FString RenderText, FVector2D ScreenPosition, FVector2D Scale, FLinearColor RenderColor, float Kerning, FLinearColor ShadowColor, FVector2D ShadowOffset, bool bCentreX, bool bCentreY, bool bOutlined, FLinearColor OutlineColor)
+{
+	struct {
+		UObject* RenderFont; //UFont* 
+		FString RenderText;
+		FVector2D ScreenPosition;
+		FVector2D Scale;
+		FLinearColor RenderColor;
+		float Kerning;
+		FLinearColor ShadowColor;
+		FVector2D ShadowOffset;
+		bool bCentreX;
+		bool bCentreY;
+		bool bOutlined;
+		FLinearColor OutlineColor;
+	} Parameters;
+
+	Parameters.RenderFont = FindFont();
+	Parameters.RenderText = RenderText;
+	Parameters.ScreenPosition = ScreenPosition;
+	Parameters.Scale = Scale;
+	Parameters.RenderColor = RenderColor;
+	Parameters.Kerning = Kerning;
+	Parameters.ShadowColor = ShadowColor;
+	Parameters.ShadowOffset = ShadowOffset;
+	Parameters.bCentreX = bCentreX;
+	Parameters.bCentreY = bCentreY;
+	Parameters.bOutlined = bOutlined;
+
+	ProcessEvent(K2_DrawTextUFunc, &Parameters);
+}
+
 FVector USkeletalMeshComponent::GetBoneMatrix(INT index) {
 
 	auto GetBoneMatrix = reinterpret_cast<FMatrix * (*)(USkeletalMeshComponent*, FMatrix*, INT)>(GetBoneMatrixF);
@@ -178,6 +234,39 @@ FVector USkeletalMeshComponent::GetBoneMatrix(INT index) {
 	GetBoneMatrix(this, &matrix, index);
 
 	return FVector({ matrix.M[3][0], matrix.M[3][1], matrix.M[3][2] });
+}
+
+FName USkeletalMeshComponent::GetBoneName(INT index) {
+	struct {
+		INT index;
+		FName ReturnValue;
+	} Parameters;
+
+	Parameters.index = index;
+
+	ProcessEvent(GetBoneNameUFunc, &Parameters);
+
+	return Parameters.ReturnValue;
+}
+
+FVector2D GetBone(USkeletalMeshComponent* Mesh, INT index, APlayerController* PlayerController) {
+
+	FVector WorldLocation = Mesh->GetBoneMatrix(index);
+
+	FVector2D ScreenLocation;
+
+	if (PlayerController->ProjectWorldLocationToScreen(WorldLocation, ScreenLocation)) return ScreenLocation;
+
+	return { 0,0 };
+}
+
+void GetAllBoneNames(USkeletalMeshComponent* Mesh) {
+
+	for (int i; i < 100; i++) {
+		std::string BoneName = Mesh->GetBoneName(i).GetName();
+		if (BoneName.find("None") != std::string::npos) break;
+		// print it out or whatever.
+	}
 }
 
 bool EngineInit()
@@ -211,6 +300,12 @@ bool EngineInit()
 	K2_DrawLineUFunc = ObjObjects->FindObject("Function Engine.Canvas.K2_DrawLine");
 
 	LineOfSightToUFunc = ObjObjects->FindObject("Function Engine.Controller.LineOfSightTo");
+
+	K2_DrawTextUFunc = ObjObjects->FindObject("Function Engine.Canvas.K2_DrawText");
+
+	GetBoneNameUFunc = ObjObjects->FindObject("Function Engine.SkinnedMeshComponent.GetBoneName");
+
+	SetControlRotationUFunc = ObjObjects->FindObject("Function Engine.Controller.SetControlRotation");
 
 	return true;
 }

@@ -10,7 +10,7 @@ int Height;
 	Credit to guttir14 https://github.com/guttir14/CheatIt I pasted his Engine.cpp/h and Util. Shits bussin thanks
 */
 
-void PostRender(PVOID UGameViewportClient, Canvas* canvas)
+void PostRender(UGameViewportClient* UGameViewportClient, Canvas* canvas)
 {
 	do {
 
@@ -42,7 +42,7 @@ void PostRender(PVOID UGameViewportClient, Canvas* canvas)
 		// https://docs.unrealengine.com/4.26/en-US/API/Runtime/Engine/GameFramework/AActor/TearOff/
 		// There is also this you can use instead. Function PortalWars.PortalWarsCharacter.IsDead
 
-		BYTE IsDead = *(BYTE*)((uintptr_t)MyPlayer + 0x58);
+		BYTE IsDead = MyPlayer->bTearOff;
 		if (IsDead != 0x18) break;
 
 		APlayerState* PlayerState = MyPlayer->PlayerState;
@@ -50,19 +50,30 @@ void PostRender(PVOID UGameViewportClient, Canvas* canvas)
 
 		BYTE MyTeamNum = PlayerState->TeamNum;
 
+		AGun* MyGun = MyPlayer->CurrentWeapon;
+
+		if (MyGun) {
+			MyGun->recoilConfig.horizontalRecoilAmount = 0.f;
+			MyGun->recoilConfig.recoilKick = 0.f;
+			MyGun->recoilConfig.recoilRiseTime = 0.f;
+			MyGun->recoilConfig.recoilTotalTime = 0.f;
+			MyGun->recoilConfig.verticalRecoilAmount = 0.f;
+			MyGun->recoilConfig.visualRecoil = 0.f;
+		}
+
 		for (auto i = 0; i < Actors.Num(); i++) {
 
 			if (!Actors.IsValidIndex(i)) break;
 
 			AActor* Actor = Actors[i];
 
-			if (!Actor || Actor == MyPlayer) continue;
+			if (!Actor || Actor == MyPlayer) continue; 
 
 			if (Actor->IsA(PortalWarsCharacter())) {
 
 				APawn* Pawn = Actor->Instigator;
 
-				BYTE IsDead = *(BYTE*)((uintptr_t)Pawn + 0x58);
+				BYTE IsDead = Pawn->bTearOff;
 				if (IsDead != 0x18) continue;
 
 				USkeletalMeshComponent* Mesh = Pawn->Mesh;
@@ -72,20 +83,16 @@ void PostRender(PVOID UGameViewportClient, Canvas* canvas)
 
 				if (State->TeamNum == MyTeamNum) continue;
 
-				FVector rootPos = Mesh->GetBoneMatrix(0);
+				FVector2D rootPos2D = GetBone(Mesh, BoneFNames::Root, PlayerController);
+				if (!rootPos2D.X && !rootPos2D.Y) continue;
 
-				FVector2D rootPos2D;
+				FLinearColor Color = { 1.f, 1.f, 1.f, 1.f };
 
-				if (PlayerController->ProjectWorldLocationToScreen(rootPos, rootPos2D)) {
+				if (PlayerController->LineOfSightTo(Pawn)) Color = { 1.f, 0.f, 0.f, 1.f };
 
-					if (!rootPos2D.X && !rootPos2D.Y) continue;
-
-					FLinearColor Color = { 1.f,1.f,1.f,1.f };
-
-					if (PlayerController->LineOfSightTo(Pawn)) Color = { 1.f,0.f,0.f,1.f };
+				canvas->K2_DrawText(State->PlayerNamePrivate, rootPos2D, FVector2D{ 1.0f, 1.0f }, FLinearColor{ 1.f, 1.f, 1.f, 1.f }, 1.0f, FLinearColor{ 0, 0, 0, 0 }, FVector2D{ 0, 0 }, true, false, false, FLinearColor{ 0, 0, 0, 0 });
 					
-					canvas->K2_DrawLine(rootPos2D, FVector2D{ (float)(Width / 2) , (float)Height }, 1, Color);
-				}
+				canvas->K2_DrawLine(rootPos2D, FVector2D{ (float)Width / 2.f , (float)Height }, 1, Color);
 			}
 		}
 	} while (false);
