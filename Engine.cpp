@@ -99,20 +99,6 @@ uintptr_t GetBoneMatrixF;
 
 void(*OPostRender)(UGameViewportClient* UGameViewportClient, Canvas* Canvas) = nullptr;
 
-UObject* PortalWarsCharacter()
-{
-	if (!EnemyClass)
-		EnemyClass = ObjObjects->FindObject("Class PortalWars.PortalWarsCharacter");
-
-	return EnemyClass;
-}
-
-UObject* FindFont()
-{
-	if (!Font) Font = ObjObjects->FindObject("Font Roboto.Roboto"); 
-	return Font;
-}
-
 bool APlayerController::ProjectWorldLocationToScreen(FVector& WorldLocation, FVector2D& ScreenLocation)
 {
 	struct {
@@ -211,7 +197,7 @@ void Canvas::K2_DrawText(FString RenderText, FVector2D ScreenPosition, FVector2D
 		FLinearColor OutlineColor;
 	} Parameters;
 
-	Parameters.RenderFont = FindFont();
+	Parameters.RenderFont = Font;
 	Parameters.RenderText = RenderText;
 	Parameters.ScreenPosition = ScreenPosition;
 	Parameters.Scale = Scale;
@@ -306,6 +292,10 @@ bool EngineInit()
 	GetBoneNameUFunc = ObjObjects->FindObject("Function Engine.SkinnedMeshComponent.GetBoneName");
 
 	SetControlRotationUFunc = ObjObjects->FindObject("Function Engine.Controller.SetControlRotation");
+	
+	EnemyClass = ObjObjects->FindObject("Class PortalWars.PortalWarsCharacter");
+	
+	Font = ObjObjects->FindObject("Font Roboto.Roboto");
 
 	return true;
 }

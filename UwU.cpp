@@ -67,9 +67,9 @@ void PostRender(UGameViewportClient* UGameViewportClient, Canvas* canvas)
 
 			AActor* Actor = Actors[i];
 
-			if (!Actor || Actor == MyPlayer) continue; 
+			if (!Actor || Actor == MyPlayer) continue;
 
-			if (Actor->IsA(PortalWarsCharacter())) {
+			if (Actor->IsA(EnemyClass)) {
 
 				APawn* Pawn = Actor->Instigator;
 

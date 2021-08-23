@@ -405,6 +405,5 @@ extern uintptr_t GetBoneMatrixF;
 extern void(*OPostRender)(UGameViewportClient* UGameViewportClient, Canvas* Canvas);
 
 bool EngineInit();
-UObject* PortalWarsCharacter();
 FVector2D GetBone(USkeletalMeshComponent* Mesh, INT index, APlayerController* PlayerController);
 void GetAllBoneNames(USkeletalMeshComponent* Mesh);
