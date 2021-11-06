@@ -1,4 +1,4 @@
-# Splitgate-Internal-UC
+# Splitgate-Internal
 
 https://www.unknowncheats.me/forum/splitgate/466511-splitgate-internal-base.html
 
